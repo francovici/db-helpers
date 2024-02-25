@@ -1,17 +1,19 @@
 import os
 import sys
 import pyodbc
+from dotenv import dotenv_values
 
 try:
-    driver_name = os.environ.get('MSSQL_SERV_DRIVER')
-    server_name = os.environ.get('MSSQL_SERV_NAME')
-    db_name = os.environ.get('MSSQL_DB_NAME')
-    uid = os.environ.get('MSSQL_SERV_USR')
-    pwd = os.environ.get('MSSQL_SERV_PWD')
-    
-    envs = [driver_name,server_name,db_name,uid,pwd]
-    for e in envs:
-        if e == None:
+    envs = dotenv_values(".env")
+
+    driver_name = envs['MSSQL_SERV_DRIVER']
+    server_name = envs['MSSQL_SERV_NAME']
+    db_name = envs['MSSQL_DB_NAME']
+    uid = envs['MSSQL_SERV_USR']
+    pwd = envs['MSSQL_SERV_PWD']
+
+    for key in envs.keys:
+        if envs[key] == None:
             raise EnvironmentError
 
 except Exception as ex:
