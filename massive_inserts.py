@@ -1,5 +1,32 @@
 import os
 import sys
+import pyodbc
+
+try:
+    driver_name = os.environ.get('MSSQL_SERV_DRIVER')
+    server_name = os.environ.get('MSSQL_SERV_NAME')
+    db_name = os.environ.get('MSSQL_DB_NAME')
+    uid = os.environ.get('MSSQL_SERV_USR')
+    pwd = os.environ.get('MSSQL_SERV_PWD')
+    
+    envs = [driver_name,server_name,db_name,uid,pwd]
+    for e in envs:
+        if e == None:
+            raise EnvironmentError
+
+except Exception as ex:
+    print('Hay variables de entorno no están definidas correctamente')
+    print(ex)
+    exit(1)
+    
+try:
+    conn = pyodbc.connect("Driver={d}"
+                      "Server={s};"
+                      "Database={db};"
+                      "uid={u};pwd={p}".format(d=driver_name, s=server_name, db=db_name, u=uid, p=pwd))
+except Exception as ex:
+    print('Error al conectar base de datos')
+    exit(1)
 
 cls = lambda: os.system('cls')
 logging_level = 3 
@@ -16,7 +43,10 @@ def is_statement_incomplete(statement : str):
     else:
         return True
 
-def execute_statement(statement, sql_driver):
+def execute_statement(statement, connection):
+    pass
+
+def execute_batch_statements(statements_batch : str, connection):
     pass
 
 def perform_inserts(sql_file, statements_to_process, commit = False):
