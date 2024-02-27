@@ -46,18 +46,42 @@ def log(msg, level):
 def is_statement_incomplete(statement : str):
     log('Ultimo caracter:', 4)
     log(statement[len(statement) - 2], 4)
-    if statement[len(statement) - 2] == ';':
+    if statement[len(statement) - 2] == ';' or statement[len(statement) - 1] == ';':
         return False
     else:
         return True
 
-def execute_statement(statement, connection):
-    pass
+def execute_statement(statement, connection, commit = False):
+    try:
+        cursor = connection.cursor()
+        cursor.execute(statement)
+    except Exception as ex:
+        log(ex, 1)
+        connection.rollback()
+        exit(1)
+
+    if(commit):
+        connection.commit()
+    else:
+        connection.rollback()
+
+def closeUp(connection, statements_executed, statements_commited):
+
+    if connection:
+        connection.close()
+
+    print('\n')
+    print('Sentencias leídas: ' + str(statements_executed))
+    print('Commits: ' + str(statements_commited))
+    print('\n')
+    input('Finalizado. Presione ENTER para salir.')
+
+
 
 def execute_batch_statements(statements_batch : str, connection):
     pass
 
-def perform_inserts(sql_file, statements_to_process, commit = False):
+def perform_inserts(sql_file, statements_to_process, connection = None, commit : bool = False):
     try:
         #Checking file size and input variables
         cls()
@@ -73,15 +97,16 @@ def perform_inserts(sql_file, statements_to_process, commit = False):
         print('Commit: ' + str(commit))
         print('\n')
 
-        action = input('Comenzar la ejecución? S/n')
+        action = input('Comenzar la ejecución? s/N')
         print('\n')
         
         with open(sql_file, 'r',encoding='utf-8') as file:
             previousLine = ''
             statements_executed = 0
+            statements_commited = 0
 
             if action.upper() != 'S':
-                input('Cancelando ejecución. Precione cualquier tecla para salir.')
+                input('Cancelando ejecución. Presione ENTER para salir.')
                 exit(1)
 
             for line in file:
@@ -98,13 +123,17 @@ def perform_inserts(sql_file, statements_to_process, commit = False):
                         pass
                     else:
                         log('Executing statement:', 3)
-                        transaction_action = 'COMMIT TRANSACTION;' if commit else 'ROLLBACK TRANSACTION;'
-                        statement = 'USE [TucusMap];\n BEGIN TRANSACTION;\n {s} \n {t}'.format(s = statement, t = transaction_action)
                         log(statement, 3)
                         previousLine = ''
                         statements_executed += 1
+                        if(commit): 
+                            statements_commited += 1
+
+        closeUp(connection, statements_executed, statements_commited)
+
     except Exception as ex:
         print(ex)
+        closeUp(connection, statements_executed, statements_commited)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -112,16 +141,21 @@ if __name__ == "__main__":
         sys.exit(1)
 
     input_sql_file = sys.argv[1]
+    connection = None
     connect_to_db = input('Conectar a la Base de datos? s/N')
 
     if connect_to_db.upper() == 'S':
-        connectToDatabase(setDBEnvironments())
+        connection = connectToDatabase(setDBEnvironments())
 
     max_statements = input('Cuántas statements quiere correr? (10):')
     if not max_statements.isnumeric():
         max_statements = 10
     else:
         max_statements = int(max_statements)
-    perform_inserts(input_sql_file, max_statements)
+    
+    if connection is not None:
+        perform_inserts(input_sql_file, max_statements, connection)
+    else:
+        perform_inserts(input_sql_file, max_statements)
 
 
