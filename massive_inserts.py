@@ -1,34 +1,40 @@
 import os
 import sys
 import pyodbc
-from dotenv import dotenv_values
 
-try:
-    envs = dotenv_values(".env")
+def setDBEnvironments():
+    from dotenv import dotenv_values
+    try:
+        envs = dotenv_values(".env")
 
-    driver_name = envs['MSSQL_SERV_DRIVER']
-    server_name = envs['MSSQL_SERV_NAME']
-    db_name = envs['MSSQL_DB_NAME']
-    uid = envs['MSSQL_SERV_USR']
-    pwd = envs['MSSQL_SERV_PWD']
+        driver_name = envs['MSSQL_SERV_DRIVER']
+        server_name = envs['MSSQL_SERV_NAME']
+        db_name = envs['MSSQL_DB_NAME']
+        uid = envs['MSSQL_SERV_USR']
+        pwd = envs['MSSQL_SERV_PWD']
 
-    for key in envs.keys:
-        if envs[key] == None:
-            raise EnvironmentError
-
-except Exception as ex:
-    print('Hay variables de entorno no están definidas correctamente')
-    print(ex)
-    exit(1)
+        for key in envs.keys:
+            if envs[key] == None:
+                raise EnvironmentError
+            
+        return dict(driver_name,server_name,db_name,uid,pwd)
     
-try:
-    conn = pyodbc.connect("Driver={d}"
-                      "Server={s};"
-                      "Database={db};"
-                      "uid={u};pwd={p}".format(d=driver_name, s=server_name, db=db_name, u=uid, p=pwd))
-except Exception as ex:
-    print('Error al conectar base de datos')
-    exit(1)
+    except Exception as ex:
+        print('Hay variables de entorno no están definidas correctamente')
+        print(ex)
+        exit(1)
+
+def connectToDatabase(dbconfig: dict):    
+    try:
+        print('Connecting to database')
+        conn = pyodbc.connect("Driver={d}"
+                        "Server={s};"
+                        "Database={db};"
+                        "uid={u};pwd={p}".format(d=dbconfig['driver_name'], s=dbconfig['server_name'], db=dbconfig['db_name'], u=dbconfig['uid'], p=dbconfig['pwd']))
+        return conn
+    except Exception as ex:
+        print('Error al conectar base de datos')
+        exit(1)
 
 cls = lambda: os.system('cls')
 logging_level = 3 
@@ -106,6 +112,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     input_sql_file = sys.argv[1]
+    connect_to_db = input('Conectar a la Base de datos? s/N')
+
+    if connect_to_db.upper() == 'S':
+        connectToDatabase(setDBEnvironments())
+
     max_statements = input('Cuántas statements quiere correr? (10):')
     if not max_statements.isnumeric():
         max_statements = 10
