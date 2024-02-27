@@ -13,11 +13,11 @@ def setDBEnvironments():
         uid = envs['MSSQL_SERV_USR']
         pwd = envs['MSSQL_SERV_PWD']
 
-        for key in envs.keys:
+        for key in envs.keys():
             if envs[key] == None:
                 raise EnvironmentError
             
-        return dict(driver_name,server_name,db_name,uid,pwd)
+        return {"driver_name": driver_name,"server_name": server_name,"db_name": db_name,"uid": uid, "pwd": pwd}
     
     except Exception as ex:
         print('Hay variables de entorno no están definidas correctamente')
@@ -34,6 +34,7 @@ def connectToDatabase(dbconfig: dict):
         return conn
     except Exception as ex:
         print('Error al conectar base de datos')
+        print(ex)
         exit(1)
 
 cls = lambda: os.system('cls')
@@ -107,14 +108,14 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
 
             if action.upper() != 'S':
                 input('Cancelando ejecución. Presione ENTER para salir.')
-                exit(1)
+                exit(0)
 
             for line in file:
                 if(statements_executed < statements_to_process):
                     if previousLine != '':
-                        statement = previousLine + ' ' + line
+                        statement = previousLine + ' ' + line.strip()
                     else:
-                        statement = line
+                        statement = line.strip()
 
                     if is_statement_incomplete(statement):
                         previousLine = statement
@@ -124,6 +125,7 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
                     else:
                         log('Executing statement:', 3)
                         log(statement, 3)
+                        execute_statement(statement, connection, commit)
                         previousLine = ''
                         statements_executed += 1
                         if(commit): 
@@ -142,10 +144,14 @@ if __name__ == "__main__":
 
     input_sql_file = sys.argv[1]
     connection = None
+    commit = False
     connect_to_db = input('Conectar a la Base de datos? s/N')
 
     if connect_to_db.upper() == 'S':
         connection = connectToDatabase(setDBEnvironments())
+        commit_answer = input('Ejecutar commits en cada transacción? s/N')
+        if commit_answer.upper() == 'S':
+            commit = True
 
     max_statements = input('Cuántas statements quiere correr? (10):')
     if not max_statements.isnumeric():
@@ -154,7 +160,7 @@ if __name__ == "__main__":
         max_statements = int(max_statements)
     
     if connection is not None:
-        perform_inserts(input_sql_file, max_statements, connection)
+        perform_inserts(input_sql_file, max_statements, connection, commit)
     else:
         perform_inserts(input_sql_file, max_statements)
 
