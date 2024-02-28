@@ -38,7 +38,6 @@ def connectToDatabase(dbconfig: dict):
         exit(1)
 
 cls = lambda: os.system('cls')
-logging_level = 3 
 
 def log(msg, level):
     if logging_level >= level:
@@ -100,6 +99,7 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
         print('Cantidad de líneas en archivo: ' + str(file_size_in_lines))
         print('Límite de sentencias a procesar: ' + str(statements_to_process))
         print('Commit: ' + str(commit))
+        print('Logging level: ' + str(logging_level))
         print('\n')
 
         action = input('Comenzar la ejecución? s/N')
@@ -159,12 +159,20 @@ if __name__ == "__main__":
         if commit_answer.upper() == 'S':
             commit = True
 
-    max_statements = input('Cuántas statements quiere correr? (10):')
+    max_statements = input('Cuántas sentencias quiere correr (como máximo)? (10):')
     if not max_statements.isnumeric():
         max_statements = 10
     else:
         max_statements = int(max_statements)
     
+    global logging_level
+
+    log_level_answer = input('Nivel de log ?\n (0=Nada, 1=Errores, 3=Sentencias, 4=Todo) (0):')
+    if not log_level_answer.isnumeric():
+        log_level_answer = 0
+
+    logging_level = int(log_level_answer)
+
     if connection is not None:
         perform_inserts(input_sql_file, max_statements, connection, commit)
     else:
