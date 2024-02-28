@@ -45,10 +45,13 @@ def log(msg, level):
         print(msg)
 
 def is_statement_incomplete(statement : str):
-    log('Ultimo caracter:', 4)
-    log(statement[len(statement) - 2], 4)
-    if statement[len(statement) - 2] == ';' or statement[len(statement) - 1] == ';':
-        return False
+    if len(statement) > 2:
+        log('Ultimo caracter:', 4)
+        log(statement[len(statement) - 2], 4)
+        if statement[len(statement) - 2] == ';' or statement[len(statement) - 1] == ';':
+            return False
+        else:
+            return True
     else:
         return True
 
