@@ -60,6 +60,8 @@ def execute_statement(statement, connection, commit = False):
             cursor = connection.cursor()
             cursor.execute(statement)
         except Exception as ex:
+            log('Error al ejecutar: ', 1)
+            log(statement, 1)
             log(ex, 1)
             connection.rollback()
             exit(1)
