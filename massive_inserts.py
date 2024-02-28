@@ -53,18 +53,19 @@ def is_statement_incomplete(statement : str):
         return True
 
 def execute_statement(statement, connection, commit = False):
-    try:
-        cursor = connection.cursor()
-        cursor.execute(statement)
-    except Exception as ex:
-        log(ex, 1)
-        connection.rollback()
-        exit(1)
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(statement)
+        except Exception as ex:
+            log(ex, 1)
+            connection.rollback()
+            exit(1)
 
-    if(commit):
-        connection.commit()
-    else:
-        connection.rollback()
+        if(commit):
+            connection.commit()
+        else:
+            connection.rollback()
 
 def closeUp(connection, statements_executed, statements_commited):
 
@@ -94,7 +95,7 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
         print('\n')
         print('Archivo: ' + sql_file)
         print('Cantidad de líneas en archivo: ' + str(file_size_in_lines))
-        print('Cantidad de sentencias a procesar: ' + str(statements_to_process))
+        print('Límite de sentencias a procesar: ' + str(statements_to_process))
         print('Commit: ' + str(commit))
         print('\n')
 
@@ -134,8 +135,10 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
         closeUp(connection, statements_executed, statements_commited)
 
     except Exception as ex:
+        print('\n Error:')
         print(ex)
         closeUp(connection, statements_executed, statements_commited)
+        exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
