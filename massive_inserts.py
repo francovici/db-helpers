@@ -115,7 +115,9 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
             if action.upper() != 'S':
                 input('Cancelando ejecución. Presione ENTER para salir.')
                 exit(0)
-
+            
+            print('Progreso: ')
+            lines_read = 0
             for line in file:
                 if(statements_executed < statements_to_process):
                     if previousLine != '':
@@ -136,6 +138,9 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
                         statements_executed += 1
                         if(commit): 
                             statements_commited += 1
+                lines_read += 1
+                progress = round(lines_read / file_size_in_lines * 100)
+                sys.stdout.write("\r%d%%" % progress)
 
         closeUp(connection, statements_executed, statements_commited)
 
