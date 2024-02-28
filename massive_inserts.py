@@ -139,8 +139,8 @@ def perform_inserts(sql_file, statements_to_process, connection = None, commit :
                         if(commit): 
                             statements_commited += 1
                 lines_read += 1
-                progress = round(lines_read / file_size_in_lines * 100)
-                sys.stdout.write("\r%d%%" % progress)
+                progress = round(lines_read / file_size_in_lines * 100,2)
+                sys.stdout.write("\r%.2f%%" % progress)
 
         closeUp(connection, statements_executed, statements_commited)
 
